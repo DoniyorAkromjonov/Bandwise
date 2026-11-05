@@ -1,0 +1,22 @@
+{
+  "tokens": {
+    "color": {
+      "canvas": "#FFFFFF",
+      "ink": "#24213D",
+      "secondaryText": "#666580",
+      "violet": "#7047FF",
+      "cyan": "#00B8D9",
+      "border": "#E8E8F0",
+      "quietSurface": "#FAFAFC"
+    },
+    "font": {
+      "display": "Fraunces",
+      "body": "DM Sans"
+    },
+    "radius": {
+      "control": "12px",
+      "card": "16px",
+      "feature": "24px"
+    }
+  }
+}
