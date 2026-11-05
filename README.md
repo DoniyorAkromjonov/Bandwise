@@ -39,4 +39,4 @@ The sample PostgreSQL credentials in `.env.example` and `compose.yaml` are only 
 
 The public landing page, registration and login flows, protected personal dashboard, and account sign-out are implemented. Listening, Reading, Writing, and Speaking practice activities are represented as honest empty states until those learning features are built. The dashboard does not claim scores, activity, or progress that the platform has not collected.
 
-The supplied Day 1 brief did not include a GitHub remote or repository metadata. Initialize or connect the desired GitHub repository when you are ready to publish this project.
+The Day 1 implementation checklist, including completed, partial, and unverified items, is in [DAY-1-CHECKLIST.md](./DAY-1-CHECKLIST.md). The project is published at [github.com/DoniyorAkromjonov/Bandwise](https://github.com/DoniyorAkromjonov/Bandwise).
