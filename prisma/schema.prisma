@@ -14,6 +14,91 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  highlights   Highlight[]
+  readingProgress ReadingProgress[]
 
   @@index([createdAt])
+}
+
+enum ArticleCategory {
+  TECHNOLOGY
+  SCIENCE
+  ENVIRONMENT
+  EDUCATION
+  HISTORY
+  PSYCHOLOGY
+  SOCIETY
+  BUSINESS
+  HEALTH
+  CULTURE
+}
+
+enum ArticleDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  UPPER_INTERMEDIATE
+  ADVANCED
+}
+
+enum HighlightColor {
+  YELLOW
+  PURPLE
+  BLUE
+  GREEN
+}
+
+model Article {
+  id          String            @id @default(cuid())
+  title       String
+  slug        String            @unique
+  description String
+  content     String
+  category    ArticleCategory
+  difficulty  ArticleDifficulty
+  readingTime Int
+  wordCount   Int
+  isPublished Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  highlights  Highlight[]
+  progress    ReadingProgress[]
+
+  @@index([isPublished, category, difficulty, createdAt])
+  @@index([isPublished, title])
+}
+
+model Highlight {
+  id                 String         @id @default(cuid())
+  userId             String
+  articleId          String
+  selectedText       String
+  startOffset        Int
+  endOffset          Int
+  color              HighlightColor
+  contentFingerprint String
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article            Article        @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([userId, articleId])
+  @@index([articleId])
+}
+
+model ReadingProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  articleId   String
+  lastPosition Int     @default(0)
+  completed   Boolean  @default(false)
+  timeSpent   Int      @default(0)
+  lastReadAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@index([userId, lastReadAt])
+  @@index([articleId])
 }

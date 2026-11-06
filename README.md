@@ -12,8 +12,9 @@ Bandwise is a responsive IELTS preparation platform built with Next.js App Route
 1. Install dependencies with `npm install`.
 2. Start the local PostgreSQL service with `docker compose up -d postgres`, or create an empty PostgreSQL database named `ielts_prep` yourself.
 3. Copy `.env.example` to `.env.local`, set `DATABASE_URL` to your database URL, and generate a random value for `AUTH_SECRET` (for example, run `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` and paste the output into `.env.local`). Keep `NEXTAUTH_URL` set to your app's URL.
-4. Apply the initial database migration with `npm run db:migrate`.
-5. Start the development server with `npm run dev` and open `http://localhost:3000`.
+4. Apply all database migrations with `npm run db:migrate`.
+5. Load the sample IELTS Reading library with `npm run db:seed` (safe to run again).
+6. Start the development server with `npm run dev` and open `http://localhost:3000`.
 
 The sample PostgreSQL credentials in `.env.example` and `compose.yaml` are only for local development. Replace them for any hosted environment. Never commit `.env.local` or production secrets.
 
@@ -31,6 +32,7 @@ The sample PostgreSQL credentials in `.env.example` and `compose.yaml` are only 
 - `npm run lint` — run ESLint
 - `npx tsc --noEmit` — check TypeScript
 - `npm run prisma:generate` — generate the Prisma Client
+- `npm run db:seed` — add or refresh the five sample Reading articles
 - `npm run db:migrate` — create and apply a development migration
 - `npm run db:deploy` — apply committed migrations in a deployed environment
 - `npm run build` — create a production build

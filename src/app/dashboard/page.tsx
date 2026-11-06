@@ -52,7 +52,7 @@ export default async function DashboardPage() {
                   <span className="grid size-11 place-items-center rounded-xl" style={{ backgroundColor: skill.tone, color: skill.ink }}><Icon aria-hidden="true" size={19} strokeWidth={1.8} /></span>
                   <h3 className="mt-5 text-lg font-semibold tracking-[-.02em]">IELTS {skill.name}</h3>
                   <p className="mt-2 flex-1 text-sm leading-6 text-[#666580]">{skill.note}</p>
-                  <button type="button" disabled title="Practice activities will be available here soon." className="mt-5 inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg border border-[#E8E8F0] bg-[#FAFAFC] px-3.5 text-sm font-semibold text-[#85839A] disabled:cursor-not-allowed disabled:opacity-80">Start practice <ArrowRight aria-hidden="true" size={15} /></button>
+                  {skill.name === "Reading" ? <Link href="/dashboard/reading" className="mt-5 inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg border border-[#DED8F2] bg-[#F7F5FF] px-3.5 text-sm font-semibold text-[#5F45CC] transition hover:border-[#7047FF]">Start practice <ArrowRight aria-hidden="true" size={15} /></Link> : <button type="button" disabled title="Practice activities will be available here soon." className="mt-5 inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg border border-[#E8E8F0] bg-[#FAFAFC] px-3.5 text-sm font-semibold text-[#85839A] disabled:cursor-not-allowed disabled:opacity-80">Start practice <ArrowRight aria-hidden="true" size={15} /></button>}
                 </article>
               );
             })}
