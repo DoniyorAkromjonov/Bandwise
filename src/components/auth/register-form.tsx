@@ -56,7 +56,7 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-      {formError && <p role="alert" className="rounded-xl border border-[#F2C5CB] bg-[#FFF5F6] px-4 py-3 text-sm leading-5 text-[#A42839]">{formError}</p>}
+      {formError && <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm leading-5 text-destructive">{formError}</p>}
       <Field label="Name" id="name" error={errors.name?.message}>
         <Input id="name" type="text" autoComplete="name" maxLength={80} aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "name-error" : undefined} {...register("name")} className="h-12 rounded-xl px-3.5" />
       </Field>
@@ -65,15 +65,15 @@ export function RegisterForm() {
       </Field>
       <Field label="Password" id="password" error={errors.password?.message}>
         <Input id="password" type="password" autoComplete="new-password" aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? "password-hint password-error" : "password-hint"} {...register("password")} className="h-12 rounded-xl px-3.5" />
-        <p id="password-hint" className="mt-1.5 text-xs leading-5 text-[#77768F]">At least 10 characters, with an uppercase letter, lowercase letter, and number.</p>
+        <p id="password-hint" className="mt-1.5 text-xs leading-5 text-muted-foreground">At least 10 characters, with an uppercase letter, lowercase letter, and number.</p>
       </Field>
       <Field label="Confirm password" id="confirmPassword" error={errors.confirmPassword?.message}>
         <Input id="confirmPassword" type="password" autoComplete="new-password" aria-invalid={Boolean(errors.confirmPassword)} aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined} {...register("confirmPassword")} className="h-12 rounded-xl px-3.5" />
       </Field>
-      <Button type="submit" disabled={isSubmitting} className="mt-2 h-12 w-full rounded-xl bg-[#7047FF] text-sm font-semibold text-white hover:bg-[#5D35EB]">
+      <Button type="submit" disabled={isSubmitting} className="mt-2 h-12 w-full rounded-xl bg-primary text-sm font-semibold text-white hover:bg-primary/90">
         {isSubmitting ? <><LoaderCircle aria-hidden="true" className="mr-2 animate-spin" size={17} /> Creating your account…</> : "Create account"}
       </Button>
-      <p className="pt-1 text-center text-sm text-[#666580]">Already have an account? <Link href="/login" className="font-semibold text-[#5F45CC] underline decoration-transparent transition hover:decoration-current">Log in</Link></p>
+      <p className="pt-1 text-center text-sm text-muted-foreground">Already have an account? <Link href="/login" className="font-semibold text-secondary-foreground underline decoration-transparent transition hover:decoration-current">Log in</Link></p>
     </form>
   );
 }
@@ -81,9 +81,9 @@ export function RegisterForm() {
 function Field({ label, id, error, children }: { label: string; id: string; error?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id} className="text-sm text-[#24213D]">{label}</Label>
+      <Label htmlFor={id} className="text-sm text-foreground">{label}</Label>
       {children}
-      {error && <p id={`${id}-error`} className="text-sm text-[#A42839]">{error}</p>}
+      {error && <p id={`${id}-error`} className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }

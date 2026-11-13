@@ -35,7 +35,7 @@ export function LoginForm() {
       return;
     }
     if (!result || result.error) {
-      setFormError("We couldn't sign you in with those details. Check your email and password, or create an account.");
+      setFormError("We couldn't sign you in. Check your email or username and password.");
       return;
     }
     router.replace(result.url ?? "/dashboard");
@@ -44,21 +44,21 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
-      {formError && <p role="alert" className="rounded-xl border border-[#F2C5CB] bg-[#FFF5F6] px-4 py-3 text-sm leading-5 text-[#A42839]">{formError}</p>}
+      {formError && <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm leading-5 text-destructive">{formError}</p>}
       <div className="space-y-2">
-        <Label htmlFor="email" className="text-sm text-[#24213D]">Email address</Label>
-        <Input id="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} placeholder="you@example.com" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "email-error" : undefined} {...register("email")} className="h-12 rounded-xl px-3.5" />
-        {errors.email && <p id="email-error" className="text-sm text-[#A42839]">{errors.email.message}</p>}
+        <Label htmlFor="email" className="text-sm text-foreground">Email or username</Label>
+        <Input id="email" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder="Email or username" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "email-error" : undefined} {...register("email")} className="h-12 rounded-xl px-3.5" />
+        {errors.email && <p id="email-error" className="text-sm text-destructive">{errors.email.message}</p>}
       </div>
       <div className="space-y-2">
-        <div className="flex items-center justify-between gap-3"><Label htmlFor="password" className="text-sm text-[#24213D]">Password</Label></div>
+        <div className="flex items-center justify-between gap-3"><Label htmlFor="password" className="text-sm text-foreground">Password</Label><Link href="/forgot-password" className="text-xs font-semibold text-secondary-foreground hover:underline">Forgot password?</Link></div>
         <Input id="password" type="password" autoComplete="current-password" aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? "password-error" : undefined} {...register("password")} className="h-12 rounded-xl px-3.5" />
-        {errors.password && <p id="password-error" className="text-sm text-[#A42839]">{errors.password.message}</p>}
+        {errors.password && <p id="password-error" className="text-sm text-destructive">{errors.password.message}</p>}
       </div>
-      <Button type="submit" disabled={isSubmitting} className="h-12 w-full rounded-xl bg-[#7047FF] text-sm font-semibold text-white hover:bg-[#5D35EB]">
+      <Button type="submit" disabled={isSubmitting} className="h-12 w-full rounded-xl bg-primary text-sm font-semibold text-white hover:bg-primary/90">
         {isSubmitting ? <><LoaderCircle aria-hidden="true" className="mr-2 animate-spin" size={17} /> Signing in…</> : "Log in"}
       </Button>
-      <p className="text-center text-sm text-[#666580]">New to Bandwise? <Link href="/register" className="font-semibold text-[#5F45CC] underline decoration-transparent transition hover:decoration-current">Create an account</Link></p>
+      <p className="text-center text-sm text-muted-foreground">New to Bandwise? <Link href="/register" className="font-semibold text-secondary-foreground underline decoration-transparent transition hover:decoration-current">Create an account</Link></p>
     </form>
   );
 }

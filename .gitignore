@@ -9,3 +9,5 @@ src/generated/prisma/
 *.tsbuildinfo
 npm-debug.log*
 .DS_Store
+backups/
+*.bwbackup

@@ -3,14 +3,14 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+const databaseUrl = process.env.DATABASE_URL;
 
-const adapter = new PrismaPg({
-  connectionString:
-    process.env.DATABASE_URL ??
-    "postgresql://postgres:postgres@localhost:5432/ielts_prep?schema=public",
-});
+if (!databaseUrl) throw new Error("DATABASE_URL must be set before the application can connect to PostgreSQL.");
 
-export const prisma =
-  globalForPrisma.prisma ?? new PrismaClient({ adapter });
+const adapter = new PrismaPg({ connectionString: databaseUrl });
+
+const cached = globalForPrisma.prisma;
+// Next.js can retain a client from before the schema was regenerated.
+export const prisma = cached?.exercise ? cached : new PrismaClient({ adapter });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

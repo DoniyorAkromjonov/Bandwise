@@ -8,16 +8,180 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  highlights   Highlight[]
-  readingProgress ReadingProgress[]
+  id                  String               @id @default(cuid())
+  name                String
+  email               String               @unique
+  passwordHash        String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  highlights          Highlight[]
+  readingProgress     ReadingProgress[]
+  readingTestAttempts ReadingTestAttempt[]
+  listeningAttempts   ListeningAttempt[]
+  mockTests           MockTest[]
+  role                UserRole             @default(USER)
+  xp                  Int                  @default(0)
+  streak              Int                  @default(0)
+  lastActivityDate    DateTime?
+  sessionVersion      Int                  @default(0)
+  vocabulary          VocabularyItem[]
+  achievements        UserAchievement[]
+  xpEvents            XpEvent[]
+  passwordResetTokens PasswordResetToken[]
+  exerciseAttempts    ExerciseAttempt[]
 
   @@index([createdAt])
+}
+
+enum ExerciseKind {
+  DAILY_ARTICLE
+  SYNONYM_HUNTER
+  CONTEXT_CLUES
+  ACADEMIC_VOCABULARY
+  SHORT_PODCAST
+  DAILY_CONVERSATION
+  TRANSCRIPTION
+}
+
+enum ExerciseLevel {
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+model Exercise {
+  id               String            @id @default(cuid())
+  kind             ExerciseKind
+  title            String
+  description      String
+  category         ArticleCategory
+  level            ExerciseLevel
+  coverUrl         String?
+  audioUrl         String?
+  duration         Int
+  passage          String
+  target           String?
+  definition       String?
+  translation      String?
+  example          String?
+  pronunciation    String?
+  showTranscript   Boolean           @default(false)
+  isPublished      Boolean           @default(false)
+  publicationDate  DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  questions        ExerciseQuestion[]
+  attempts         ExerciseAttempt[]
+
+  @@index([kind, isPublished, publicationDate])
+}
+
+model ExerciseQuestion {
+  id          String   @id @default(cuid())
+  exerciseId  String
+  position    Int
+  prompt      String
+  explanation String
+  exercise    Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  options     ExerciseOption[]
+
+  @@unique([exerciseId, position])
+}
+
+model ExerciseOption {
+  id         String           @id @default(cuid())
+  questionId String
+  position   Int
+  text       String
+  correct    Boolean
+  question   ExerciseQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, position])
+}
+
+model ExerciseAttempt {
+  id          String    @id @default(cuid())
+  userId      String
+  exerciseId  String?
+  token       String
+  title       String
+  score       Int
+  total       Int
+  answers     Json
+  createdAt   DateTime  @default(now())
+  exercise    Exercise? @relation(fields: [exerciseId], references: [id], onDelete: SetNull)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, token])
+  @@index([userId, exerciseId, createdAt])
+}
+
+model PasswordResetToken {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model VocabularyItem {
+  id          String   @id @default(cuid())
+  userId      String
+  word        String
+  definition  String
+  example     String?
+  articleId   String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article     Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  @@unique([userId, word])
+  @@index([userId, createdAt])
+}
+
+model Achievement {
+  id          String @id @default(cuid())
+  key         String @unique
+  name        String
+  description String
+  icon        String
+  xpReward    Int
+  threshold   Int
+  metric      String
+  users       UserAchievement[]
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  awardedAt     DateTime @default(now())
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  @@unique([userId, achievementId])
+  @@index([userId, awardedAt])
+}
+
+model XpEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  source    String
+  amount    Int
+  createdAt DateTime @default(now())
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, source])
+  @@index([userId, createdAt])
 }
 
 enum ArticleCategory {
@@ -47,21 +211,49 @@ enum HighlightColor {
   GREEN
 }
 
+enum ReadingQuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE_NOT_GIVEN
+  YES_NO_NOT_GIVEN
+  MATCHING_INFORMATION
+  SENTENCE_COMPLETION
+  SUMMARY_NOTE_TABLE_FLOW_CHART_COMPLETION
+  MATCHING_HEADINGS
+  MATCHING_FEATURES
+  MATCHING_SENTENCE_ENDINGS
+  DIAGRAM_LABEL_COMPLETION
+  SHORT_ANSWER
+}
+
+enum MockTestSkill {
+  READING
+  LISTENING
+}
+
+enum MockTestStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
 model Article {
-  id          String            @id @default(cuid())
-  title       String
-  slug        String            @unique
-  description String
-  content     String
-  category    ArticleCategory
-  difficulty  ArticleDifficulty
-  readingTime Int
-  wordCount   Int
-  isPublished Boolean           @default(false)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  highlights  Highlight[]
-  progress    ReadingProgress[]
+  id                       String               @id @default(cuid())
+  title                    String
+  slug                     String               @unique
+  description              String
+  content                  String
+  category                 ArticleCategory
+  difficulty               ArticleDifficulty
+  readingTime              Int
+  wordCount                Int
+  isPublished              Boolean              @default(false)
+  activeReadingTestVersion Int                  @default(1)
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+  highlights               Highlight[]
+  progress                 ReadingProgress[]
+  questions                ReadingQuestion[]
+  testAttempts             ReadingTestAttempt[]
+  vocabulary              VocabularyItem[]
 
   @@index([isPublished, category, difficulty, createdAt])
   @@index([isPublished, title])
@@ -86,19 +278,160 @@ model Highlight {
 }
 
 model ReadingProgress {
-  id          String   @id @default(cuid())
-  userId      String
-  articleId   String
-  lastPosition Int     @default(0)
-  completed   Boolean  @default(false)
-  timeSpent   Int      @default(0)
-  lastReadAt  DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  userId       String
+  articleId    String
+  lastPosition Int      @default(0)
+  completed    Boolean  @default(false)
+  timeSpent    Int      @default(0)
+  lastReadAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article      Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, articleId])
   @@index([userId, lastReadAt])
   @@index([articleId])
+}
+
+model ReadingQuestion {
+  id                 String              @id @default(cuid())
+  articleId          String
+  type               ReadingQuestionType
+  testVersion        Int                 @default(1)
+  position           Int
+  prompt             String
+  passageBlockIndex  Int?
+  evidenceBlockIndex Int
+  options            Json?
+  correctAnswers     Json
+  explanation        String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  article            Article             @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  answers            ReadingUserAnswer[]
+
+  @@unique([articleId, testVersion, position])
+  @@index([articleId, testVersion, type, position])
+}
+
+model ReadingTestAttempt {
+  id              String              @id @default(cuid())
+  userId          String
+  articleId       String
+  testVersion     Int                 @default(1)
+  submissionToken String
+  score           Int
+  questionCount   Int
+  answeredCount   Int
+  submittedAt     DateTime            @default(now())
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article         Article             @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  answers         ReadingUserAnswer[]
+
+  @@unique([userId, submissionToken])
+  @@index([userId, articleId, submittedAt])
+}
+
+model ReadingUserAnswer {
+  id                 String             @id @default(cuid())
+  attemptId          String
+  questionId         String
+  answer             String             @default("")
+  isCorrect          Boolean
+  promptSnapshot     String
+  optionsSnapshot    Json?
+  correctAnswer      String
+  explanation        String
+  evidenceBlockIndex Int
+  attempt            ReadingTestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question           ReadingQuestion    @relation(fields: [questionId], references: [id], onDelete: Restrict)
+
+  @@unique([attemptId, questionId])
+  @@index([questionId])
+}
+
+model ListeningMaterial {
+  id          String             @id @default(cuid())
+  slug        String             @unique
+  title       String
+  description String
+  category    String
+  difficulty  ArticleDifficulty
+  duration    Int
+  audioUrl    String
+  transcript  Json
+  questions   Json
+  isPublished Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  attempts    ListeningAttempt[]
+
+  @@index([isPublished, category, difficulty])
+}
+
+model ListeningAttempt {
+  id              String           @id @default(cuid())
+  userId          String
+  materialId      String
+  submissionToken String
+  answers         Json
+  score           Int
+  questionCount   Int
+  submittedAt     DateTime         @default(now())
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  material        ListeningMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@index([userId, submittedAt])
+  @@index([materialId])
+  @@unique([userId, submissionToken])
+}
+
+model MockTest {
+  id              String          @id @default(cuid())
+  userId          String
+  skill           MockTestSkill
+  status          MockTestStatus  @default(IN_PROGRESS)
+  title           String
+  sourceSlug      String
+  submissionToken String
+  startedAt       DateTime        @default(now())
+  deadlineAt      DateTime
+  completedAt     DateTime?
+  score           Int?
+  questionCount   Int?
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections        TestSection[]
+
+  @@unique([userId, submissionToken])
+  @@index([userId, skill, status, startedAt])
+}
+
+model MockTestTemplate {
+  id          String        @id @default(cuid())
+  skill       MockTestSkill
+  title       String
+  sourceSlug  String
+  duration    Int           @default(20)
+  isPublished Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  @@unique([skill, sourceSlug])
+  @@index([isPublished, skill])
+}
+
+model TestSection {
+  id                 String   @id @default(cuid())
+  mockTestId         String
+  position           Int
+  sourceSlug         String
+  answers            Json     @default("{}")
+  reviewQuestionIds  Json     @default("[]")
+  score              Int?
+  questionCount      Int?
+  mockTest           MockTest @relation(fields: [mockTestId], references: [id], onDelete: Cascade)
+
+  @@unique([mockTestId, position])
+  @@index([mockTestId, sourceSlug])
 }

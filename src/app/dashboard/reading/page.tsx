@@ -8,7 +8,7 @@ import { authOptions } from "@/../auth";
 import { prisma } from "@/lib/prisma";
 import { ReadingLibrary, type LibraryArticle } from "@/components/reading/reading-library";
 
-export const metadata: Metadata = { title: "Reading Library | Bandwise" };
+export const metadata: Metadata = { title: "Reading Lab | Bandwise" };
 
 export default async function ReadingLibraryPage() {
   await connection();
@@ -22,5 +22,5 @@ export default async function ReadingLibraryPage() {
   ]);
   const initial: LibraryArticle[] = articles.map(({ progress, ...article }) => ({ ...article, completed: progress[0]?.completed ?? false, lastPosition: progress[0]?.lastPosition ?? 0 }));
 
-  return <main className="min-h-screen bg-[#FAFAFC]"><header className="border-b border-[#E8E8F0] bg-white"><div className="page-shell flex h-[72px] items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-[#666580] hover:text-[#24213D]"><ArrowLeft size={17} />Dashboard</Link><span className="inline-flex items-center gap-2 text-sm font-semibold"><BookOpenText size={18} className="text-[#7047FF]" />Bandwise Reading</span></div></header><div className="page-shell py-10 sm:py-14"><ReadingLibrary initialArticles={initial} total={total} /></div></main>;
+  return <main className="min-h-screen bg-background"><header className="border-b border-border bg-card"><div className="page-shell flex h-[72px] items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"><ArrowLeft size={17} />Dashboard</Link><span className="inline-flex items-center gap-2 text-sm font-semibold"><BookOpenText size={18} className="text-primary" />Bandwise Reading</span></div></header><div className="page-shell py-10 sm:py-14"><ReadingLibrary initialArticles={initial} total={total} /></div></main>;
 }

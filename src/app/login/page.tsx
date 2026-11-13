@@ -12,7 +12,7 @@ export const instant = false;
 export default async function LoginPage() {
   await connection();
   const session = await getServerSession(authOptions);
-  if (session?.user) redirect("/dashboard");
+  if (session?.user?.id) redirect("/dashboard");
 
   return <AuthShell title="Welcome back." description="Log in to continue your IELTS preparation."><LoginForm /></AuthShell>;
 }

@@ -1,10 +1,15 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../src/generated/prisma/client";
+import { Prisma, PrismaClient } from "../src/generated/prisma/client";
+import { ACTIVE_READING_TEST_VERSION, readingQuestionSets } from "./reading-questions";
+import { day7ReadingArticles, day7ReadingQuestionSets } from "./day7-reading-content";
+import { listeningMaterials } from "../src/lib/listening/content";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/ielts_prep?schema=public" });
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) throw new Error("DATABASE_URL must be set before seeding.");
+const adapter = new PrismaPg({ connectionString: databaseUrl });
 const prisma = new PrismaClient({ adapter });
 
-const articles = [
+const baseArticles = [
   {
     title: "The Future of Artificial Intelligence", slug: "future-of-artificial-intelligence", description: "How machine learning is reshaping work, research and the decisions societies must make about technology.", category: "TECHNOLOGY", difficulty: "UPPER_INTERMEDIATE",
     blocks: [
@@ -92,17 +97,76 @@ const articles = [
   },
 ] as const;
 
+const articles = [...baseArticles, ...day7ReadingArticles];
+const questionSets = { ...readingQuestionSets, ...day7ReadingQuestionSets };
+
 async function main() {
   for (const article of articles) {
     const blocks = article.blocks.map(([type, text]) => ({ type, text }));
     const wordCount = blocks.reduce((n, block) => n + (block.type === "paragraph" ? block.text.trim().split(/\s+/).length : 0), 0);
-    if (wordCount < 600 || wordCount > 1000) throw new Error(`${article.slug} contains ${wordCount} words; expected 600–1000.`);
-    await prisma.article.upsert({
+    if (wordCount < 300 || wordCount > 1000) throw new Error(`${article.slug} contains ${wordCount} words; expected 300–1000.`);
+    const savedArticle = await prisma.article.upsert({
       where: { slug: article.slug },
-      update: { title: article.title, description: article.description, content: JSON.stringify(blocks), category: article.category, difficulty: article.difficulty, wordCount, readingTime: Math.ceil(wordCount / 120), isPublished: true },
-      create: { title: article.title, slug: article.slug, description: article.description, content: JSON.stringify(blocks), category: article.category, difficulty: article.difficulty, wordCount, readingTime: Math.ceil(wordCount / 120), isPublished: true },
+      update: { title: article.title, description: article.description, content: JSON.stringify(blocks), category: article.category, difficulty: article.difficulty, wordCount, readingTime: Math.ceil(wordCount / 120), isPublished: true, activeReadingTestVersion: ACTIVE_READING_TEST_VERSION },
+      create: { title: article.title, slug: article.slug, description: article.description, content: JSON.stringify(blocks), category: article.category, difficulty: article.difficulty, wordCount, readingTime: Math.ceil(wordCount / 120), isPublished: true, activeReadingTestVersion: ACTIVE_READING_TEST_VERSION },
     });
+    const questions = questionSets[article.slug];
+    if (!questions || questions.length < 5 || new Set(questions.map((question) => question.type)).size < 3) throw new Error(`${article.slug} must have at least five questions across three IELTS Reading task types.`);
+    for (const [index, question] of questions.entries()) {
+      const targetBlock = question.passageBlockIndex ?? question.evidenceBlockIndex;
+      if (!blocks[question.evidenceBlockIndex] || blocks[question.evidenceBlockIndex].type !== "paragraph") throw new Error(`${article.slug} question ${index + 1} has an invalid evidence paragraph.`);
+      if (question.passageBlockIndex !== undefined && blocks[targetBlock]?.type !== "paragraph") throw new Error(`${article.slug} question ${index + 1} has an invalid passage paragraph.`);
+      if (!question.prompt.trim() || !question.explanation.trim() || !question.correctAnswers.length) throw new Error(`${article.slug} question ${index + 1} is missing its prompt, answer or explanation.`);
+      const isChoice = ["MULTIPLE_CHOICE", "TRUE_FALSE_NOT_GIVEN", "YES_NO_NOT_GIVEN", "MATCHING_INFORMATION", "MATCHING_HEADINGS", "MATCHING_FEATURES", "MATCHING_SENTENCE_ENDINGS"].includes(question.type);
+      if (isChoice && (!question.options || !question.correctAnswers.every((answer) => question.options?.some((option) => option.id === answer)))) throw new Error(`${article.slug} question ${index + 1} has an answer outside its options.`);
+      await prisma.readingQuestion.upsert({
+        where: { articleId_testVersion_position: { articleId: savedArticle.id, testVersion: ACTIVE_READING_TEST_VERSION, position: index + 1 } },
+        update: { type: question.type, prompt: question.prompt, passageBlockIndex: question.passageBlockIndex ?? null, evidenceBlockIndex: question.evidenceBlockIndex, options: question.options ?? Prisma.DbNull, correctAnswers: question.correctAnswers, explanation: question.explanation },
+        create: { articleId: savedArticle.id, testVersion: ACTIVE_READING_TEST_VERSION, type: question.type, position: index + 1, prompt: question.prompt, passageBlockIndex: question.passageBlockIndex ?? null, evidenceBlockIndex: question.evidenceBlockIndex, options: question.options ?? Prisma.DbNull, correctAnswers: question.correctAnswers, explanation: question.explanation },
+      });
+    }
     console.log(`${article.slug}: ${wordCount} words`);
+  }
+  for (const material of listeningMaterials) {
+    await prisma.listeningMaterial.upsert({
+      where: { slug: material.slug },
+      update: {
+        title: material.title,
+        description: material.description,
+        category: material.category,
+        difficulty: material.difficulty,
+        duration: Math.round(material.cues.at(-1)?.end ?? 0),
+        audioUrl: material.audioUrl,
+        transcript: material.cues as Prisma.InputJsonValue,
+        questions: material.questions as Prisma.InputJsonValue,
+        isPublished: true,
+      },
+      create: {
+        slug: material.slug,
+        title: material.title,
+        description: material.description,
+        category: material.category,
+        difficulty: material.difficulty,
+        duration: Math.round(material.cues.at(-1)?.end ?? 0),
+        audioUrl: material.audioUrl,
+        transcript: material.cues as Prisma.InputJsonValue,
+        questions: material.questions as Prisma.InputJsonValue,
+        isPublished: true,
+      },
+    });
+    console.log(`${material.slug}: ${material.questions.length} listening questions`);
+  }
+  const mockTests = [
+    { skill: "READING" as const, title: "Reading: Artificial Intelligence", sourceSlug: "future-of-artificial-intelligence", duration: 20, isPublished: true },
+    { skill: "READING" as const, title: "Reading: Cities and Urban Growth", sourceSlug: "urbanization-modern-cities", duration: 20, isPublished: true },
+    { skill: "LISTENING" as const, title: "Listening: North Bay Ferry Booking", sourceSlug: "harbour-ferry-enquiry", duration: 20, isPublished: true },
+  ];
+  for (const test of mockTests) {
+    await prisma.mockTestTemplate.upsert({
+      where: { skill_sourceSlug: { skill: test.skill, sourceSlug: test.sourceSlug } },
+      update: { title: test.title, duration: test.duration, isPublished: true },
+      create: test,
+    });
   }
 }
 

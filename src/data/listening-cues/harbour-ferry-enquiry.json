@@ -1,0 +1,47 @@
+[
+  {
+    "start": 0.0,
+    "end": 7.899,
+    "text": "Good afternoon, Harbour Ferries. My name is Daniel. How can I help you today?"
+  },
+  {
+    "start": 7.899,
+    "end": 15.747,
+    "text": "I would like to book a return ticket to North Bay for Saturday, please. I am travelling with one friend."
+  },
+  {
+    "start": 15.747,
+    "end": 24.56,
+    "text": "The first ferry leaves at nine fifteen, and the crossing takes about forty minutes. The next sailing is at ten thirty."
+  },
+  {
+    "start": 24.56,
+    "end": 32.593,
+    "text": "Ten thirty would be better because we want to have breakfast first. Does the return ticket include both journeys?"
+  },
+  {
+    "start": 32.593,
+    "end": 44.301,
+    "text": "Yes, it does. A return ticket costs twenty eight pounds, and bicycles travel free. There is no need to reserve a bicycle space."
+  },
+  {
+    "start": 44.301,
+    "end": 50.81,
+    "text": "That sounds good. Can I pay at the terminal, or do I need to pay online?"
+  },
+  {
+    "start": 50.81,
+    "end": 59.878,
+    "text": "You can pay at the terminal, but please arrive twenty minutes before departure. The ticket office is next to platform two."
+  },
+  {
+    "start": 59.878,
+    "end": 66.181,
+    "text": "Is there a cafГ© on the ferry? My friend has a long journey to the harbour."
+  },
+  {
+    "start": 66.181,
+    "end": 74.544,
+    "text": "There is a small cafГ© serving hot drinks and sandwiches. It opens as soon as the ferry leaves the harbour."
+  }
+]

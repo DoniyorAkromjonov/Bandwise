@@ -51,6 +51,7 @@ export async function registerUser(input: unknown): Promise<RegisterResult> {
       };
     }
 
+    console.error("Account registration failed", error);
     return {
       ok: false,
       message: "We couldn't create your account right now. Please try again shortly.",

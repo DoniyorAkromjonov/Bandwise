@@ -22,7 +22,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     });
     if (existing && resetTimer) await prisma.readingProgress.update({ where: { id: progress.id }, data: { timeSpent: 0 } });
     return Response.json({ progress });
-  } catch {
+  } catch (error) {
+    console.error("Could not save reading progress", error);
     return jsonError("Could not save reading progress", 500);
   }
 }

@@ -25,3 +25,15 @@ export const libraryQuerySchema = z.object({
   sort: z.enum(["newest", "time", "alphabetical"]).optional().default("newest"),
   page: z.coerce.number().int().min(1).max(1000).optional().default(1),
 });
+
+export const readingAttemptSchema = z.object({
+  submissionToken: z.string().uuid(),
+  mockTestId: z.string().min(1).max(64).optional(),
+  answers: z.array(z.object({ questionId: z.string().min(1).max(64), answer: z.string().max(240) })).max(50),
+}).superRefine(({ answers }, ctx) => {
+  const ids = new Set<string>();
+  for (const [index, answer] of answers.entries()) {
+    if (ids.has(answer.questionId)) ctx.addIssue({ code: "custom", path: ["answers", index, "questionId"], message: "Duplicate question." });
+    ids.add(answer.questionId);
+  }
+});
